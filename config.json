@@ -1,0 +1,14 @@
+{
+  "rskd": {
+    "url": "localhost",
+    "rpcport": 4444,
+    "user": "user",
+    "pass": "pass"
+  },
+  "bitcoind": {
+    "url": "localhost",
+    "rpcport": 32591,
+    "user": "admin",
+    "pass": "admin"
+  }
+}
