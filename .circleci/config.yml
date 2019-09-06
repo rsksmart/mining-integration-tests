@@ -42,7 +42,7 @@ jobs:
                     done
                     docker-compose up -d
                     sleep 3
-                    sh chmod +x btc-generate-blocks.sh && ./btc-generate-blocks.sh
+                    ./btc-generate-blocks.sh
                     npm test
       - store_test_results:
           path: ~/tmp/Results
