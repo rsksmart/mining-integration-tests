@@ -4,13 +4,32 @@ jobs:
     docker:
       # specify the version you desire here
       - image: circleci/openjdk:8-jdk
+
       - image: seegno/bitcoind:latest
+        name: bitcoind01
+        environment:
+          DISABLEWALLET: 0
+        command: [ "-printtoconsole", "-regtest", "-debug",
+          "-server", "-listen", "-port=31591", "-connect=bitcoind02:31592",
+          "-rpcbind=0.0.0.0:32591", "-rpcallowip=0.0.0.0/0",
+          "-rpcuser=admin", "-rpcpassword=admin",
+          "-deprecatedrpc=generate" ]
+
+      - image: seegno/bitcoind:latest
+        name: bitcoind02
+        environment:
+          DISABLEWALLET: 0
+        command: [ "-printtoconsole", "-regtest", "-debug",
+          "-server", "-listen", "-port=31592", "-connect=bitcoind01:31591",
+          "-rpcbind=0.0.0.0:32591", "-rpcallowip=0.0.0.0/0",
+          "-rpcuser=admin", "-rpcpassword=admin",
+          "-deprecatedrpc=generate" ]
 
     working_directory: ~/tmp
 
     steps:
       - checkout
-      - setup_remote_docker
+      #- setup_remote_docker
       - run:
           name: Avoid hosts unknown for github
           command: mkdir -p ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
@@ -40,8 +59,8 @@ jobs:
                       echo "Waiting for RskJ..."
                       sleep 1
                     done
-                    docker-compose up -d
-                    sleep 3
+                    #docker-compose up -d
+                    #sleep 3
                     ./btc-generate-blocks.sh
                     npm test
       - store_test_results:
@@ -54,13 +73,13 @@ workflows:
     commit:
         jobs:
             - build
-    daily:
-        triggers:
-            - schedule:
-                cron: "33 01 * * *"
-                filters:
-                    branches:
-                        only:
-                            - master
-        jobs:
-            - build
+    # daily:
+    #     triggers:
+    #         - schedule:
+    #             cron: "33 01 * * *"
+    #             filters:
+    #                 branches:
+    #                     only:
+    #                         - master
+    #     jobs:
+    #         - build
