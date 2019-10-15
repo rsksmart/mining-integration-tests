@@ -6,7 +6,7 @@
     "pass": "pass"
   },
   "bitcoind": {
-    "url": "localhost",
+    "url": "bitcoind01",
     "rpcport": 32591,
     "user": "admin",
     "pass": "admin"

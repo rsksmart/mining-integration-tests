@@ -1,11 +1,11 @@
-version: 2.1
+version: 2.0
 jobs:
   build:
     docker:
       # specify the version you desire here
       - image: circleci/openjdk:8-jdk
 
-      - image: seegno/bitcoind:latest
+      - image: kylemanna/bitcoind:latest
         name: bitcoind01
         environment:
           DISABLEWALLET: 0
@@ -15,7 +15,7 @@ jobs:
           "-rpcuser=admin", "-rpcpassword=admin",
           "-deprecatedrpc=generate" ]
 
-      - image: seegno/bitcoind:latest
+      - image: kylemanna/bitcoind:latest
         name: bitcoind02
         environment:
           DISABLEWALLET: 0
@@ -29,57 +29,41 @@ jobs:
 
     steps:
       - checkout
-      #- setup_remote_docker
       - run:
-          name: Avoid hosts unknown for github
-          command: mkdir -p ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+          name: Generate Bictoin blocks
+          command: ./btc-generate-blocks.sh
       - run:
           name: Clone and Build RSKj
           command: |
-                    GIT_SSH_COMMAND='ssh -i ~/.ssh/id_rsa_fingerprint'
-                    git clone git@github.com:rsksmart/rskj.git ~/rsksmart/rskj
-                    cd ~/rsksmart/rskj/
-                    ./configure.sh
-                    ./gradlew clean build -x test
+            git clone --branch "$RSKJ_CIRCLE_BRANCH" --single-branch "https://github.com/$RSKJ_CIRCLE_USERNAME/$RSKJ_CIRCLE_REPONAME" ~/rsksmart/rskj
+            cd ~/rsksmart/rskj/
+            test -n "$RSKJ_CIRCLE_SHA1" && git checkout "$RSKJ_CIRCLE_SHA1"
+            ./configure.sh
+            ./gradlew clean build -x test
       - run:
           name: Prepare npm
           command: |
-                    curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
-                    sudo apt update
-                    sudo apt-get install -y nodejs
-                    sudo apt install npm
-                    sudo apt install build-essential
+            curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+            sudo apt update
+            sudo apt-get install -y nodejs
+            sudo apt install npm
+            sudo apt install build-essential
       - run:
           name: Start RskJ & Run Tests
           command: |
-                    npm install
-                    java -Drsk.conf.file=./rsk-integration-test.conf -cp ~/rsksmart/rskj/rskj-core/build/libs/rskj-core-1.1.0-SNAPSHOT-all.jar co.rsk.Start --regtest nohup &               
-                    until nc -z 127.0.0.1 4444
-                    do
-                      echo "Waiting for RskJ..."
-                      sleep 1
-                    done
-                    #docker-compose up -d
-                    #sleep 3
-                    ./btc-generate-blocks.sh
-                    npm test
+            npm install
+            version=$(tr -d "'\"" <~/rsksmart/rskj/rskj-core/src/main/resources/version.properties \
+              | cut -d = -f 2- | paste -sd - -)
+            java -Drsk.conf.file=./rsk-integration-test.conf -cp ~/rsksmart/rskj/rskj-core/build/libs/rskj-core-"$version"-all.jar co.rsk.Start --regtest & rskpid=$!
+            until nc -z 127.0.0.1 4444
+            do
+              echo "Waiting for RskJ..."
+              sleep 1
+            done
+            npm test
+            kill $rskpid
       - store_test_results:
           path: ~/tmp/Results
       
       - store_artifacts:
           path: ~/tmp/Results/mocha
-        
-workflows:
-    commit:
-        jobs:
-            - build
-    # daily:
-    #     triggers:
-    #         - schedule:
-    #             cron: "33 01 * * *"
-    #             filters:
-    #                 branches:
-    #                     only:
-    #                         - master
-    #     jobs:
-    #         - build
