@@ -33,11 +33,24 @@ jobs:
           name: Generate Bictoin blocks
           command: ./btc-generate-blocks.sh
       - run:
-          name: Clone and Build RSKj
+          name: Clone RSKj
           command: |
-            git clone --branch "$RSKJ_CIRCLE_BRANCH" --single-branch "https://github.com/$RSKJ_CIRCLE_USERNAME/$RSKJ_CIRCLE_REPONAME" ~/rsksmart/rskj
+            if [ -n "$RSKJ_PR_NUMBER" ]; then # target is PR against rsksmart/rskj
+              git clone "https://github.com/$RSKJ_CIRCLE_USERNAME/$RSKJ_CIRCLE_REPONAME" ~/rsksmart/rskj
+              cd ~/rsksmart/rskj/
+              git fetch origin +refs/pull/"$RSKJ_PR_NUMBER"/merge
+              git checkout FETCH_HEAD
+            else # target is a push against rsksmart/rskj
+              git clone --branch "$RSKJ_CIRCLE_BRANCH" --single-branch "https://github.com/$RSKJ_CIRCLE_USERNAME/$RSKJ_CIRCLE_REPONAME" ~/rsksmart/rskj
+              if [ -n "$RSKJ_CIRCLE_SHA1" ]; then
+                cd ~/rsksmart/rskj/
+                git checkout "$RSKJ_CIRCLE_SHA1"
+              fi
+            fi
+      - run:
+          name: Build RSKj
+          command: |
             cd ~/rsksmart/rskj/
-            test -n "$RSKJ_CIRCLE_SHA1" && git checkout "$RSKJ_CIRCLE_SHA1"
             ./configure.sh
             ./gradlew clean build -x test
       - run:
