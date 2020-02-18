@@ -63,6 +63,55 @@ describe('Tests for mining block information', () => {
                 let uncleCountFromResponse = parseInt(rskBlockResponseHeight451By[byMethods[byMethod]].result.hashForMergedMining.substring(56, 58), 16);
                 expect(uncleCountFromResponse).to.equal(uncleCountCalculated);
             });
+
         });
+    }
+});
+
+describe('Tests for cumulative difficulty', () => {
+    let rskBlockResponse = [0, 1];
+    let rskResponse;
+    before(async function () {
+        this.timeout(120000);
+        await utils.bitcoindPromiseRequest("generate", [], context);
+        await utils.rskdPromiseRequest("evm_reset", [], context);
+        let responseBlockMined = await utils.mineBlockResponse(context,0);
+    });
+    for (let byMethod in byMethods) {
+        describe(`Tests for block information by ${byMethod}`, () => {
+            it('should get information on cummulative difficulty equals to block difficulty if no uncles', async () => {
+                responseBlockMined = await utils.mineBlockResponse(context, 0);
+                responseBlockMined = await utils.mineBlockResponse(context, 0);
+                responseBlockMined = await utils.mineBlockResponse(context, 0);
+                rskBlockResponse[byMethods.Number] = JSON.parse(await utils.getRskBlockByNumber(responseBlockMined.blockIncludedHeight, context));
+                rskBlockResponse[byMethods.Hash] = JSON.parse(await utils.getRskBlockByHash(responseBlockMined.blockHash, context));
+                let blockInfo = rskBlockResponse[byMethods[byMethod]];
+                expect(blockInfo).has.property("result");
+                expect(blockInfo.result).has.property("uncles");
+                expect(blockInfo.result).has.property("cumulativeDifficulty");
+                let cumulativeDifficulty = blockInfo.result.uncles.length + parseInt(blockInfo.result.difficulty);
+                cumulativeDifficulty = "0x" + cumulativeDifficulty.toString(16);
+                expect(blockInfo.result.uncles.length).to.be.equal(0);
+                console.log(`uncle length ${blockInfo.result.uncles.length}`);
+                expect(blockInfo.result.cumulativeDifficulty).to.be.equal(cumulativeDifficulty);
+            });
+            it('should get information on cummulative difficulty equals to block difficulty plus n uncles difficulties', async () => {
+                responseBlockMined = await utils.mineBlockResponse(context, 5);
+                responseBlockMined = await utils.mineBlockResponse(context, 1);
+                responseBlockMined = await utils.mineBlockResponse(context, 1);
+                rskBlockResponse[byMethods.Number] = JSON.parse(await utils.getRskBlockByNumber(responseBlockMined.blockIncludedHeight, context));
+                rskBlockResponse[byMethods.Hash] = JSON.parse(await utils.getRskBlockByHash(responseBlockMined.blockHash, context));
+                let blockInfo = rskBlockResponse[byMethods[byMethod]];
+                expect(blockInfo).has.property("result");
+                expect(blockInfo.result).has.property("uncles");
+                expect(blockInfo.result).has.property("cumulativeDifficulty");
+                let cumulativeDifficulty = blockInfo.result.uncles.length + parseInt(blockInfo.result.difficulty);
+                cumulativeDifficulty = "0x" + cumulativeDifficulty.toString(16);
+                expect(blockInfo.result.uncles.length).to.be.greaterThan(0);
+                console.log(`uncle length ${blockInfo.result.uncles.length}`);
+                expect(blockInfo.result.cumulativeDifficulty).to.be.equal(cumulativeDifficulty);
+            });
+        });
+
     }
 });
