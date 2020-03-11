@@ -1,6 +1,7 @@
 const expect = require('chai').expect;
 const utils = require('../lib/mining-utils.js');
 const amountOfBlocksToMine = 450;
+const extraBlocksToMineForPapyrus = 9;
 const numberOfUncles = 32;
 const byMethods = { "Number": 0, "Hash": 1 };
 const config = require('../config.json');
@@ -18,6 +19,7 @@ const context = {
 describe('Tests for mining block information', () => {
     let rskBlockResponseHeight001By = [0, 1];
     let rskBlockResponseHeight451By = [0, 1];
+    let rskBlockResponseHeight460By = [0, 1];
     let rskResponse;
     before(async function () {
         this.timeout(120000);
@@ -32,6 +34,12 @@ describe('Tests for mining block information', () => {
         }
         rskBlockResponseHeight451By[byMethods.Number] = JSON.parse(await utils.getRskBlockByNumber(responseBlockMined.blockIncludedHeight, context));
         rskBlockResponseHeight451By[byMethods.Hash] = JSON.parse(await utils.getRskBlockByHash(responseBlockMined.blockHash, context));
+        for (let i = 0; i < extraBlocksToMineForPapyrus; i++) {
+            responseBlockMined = await utils.mineBlockResponse(context);
+        }
+
+        rskBlockResponseHeight460By[byMethods.Number] = JSON.parse(await utils.getRskBlockByNumber(responseBlockMined.blockIncludedHeight, context));
+        rskBlockResponseHeight460By[byMethods.Hash] = JSON.parse(await utils.getRskBlockByHash(responseBlockMined.blockHash, context));
     });
     for (let byMethod in byMethods) {
         describe(`Tests for block information by ${byMethod}`, () => {
@@ -52,18 +60,39 @@ describe('Tests for mining block information', () => {
                 expect(hashHeightPart).to.equal(blockHeight451);
             });
 
+            it('should get information of hashForMergedMining key height is last 4 bytes if armadillo enabled and papyrus activated', async () => {
+                let hashForMergedMiningH460 = rskBlockResponseHeight460By[byMethods[byMethod]].result.hashForMergedMining;
+                let blockHeight460 = rskBlockResponseHeight460By[byMethods[byMethod]].result.number;
+                blockHeight460 = blockHeight460.substr(2);
+                blockHeight460 = utils.addLeadingZeros(8, blockHeight460);
+                expect(hashForMergedMiningH460).to.be.a('string').that.is.not.empty.and.not.equal("0x00");
+                let hashHeightPart = hashForMergedMiningH460.substr(hashForMergedMiningH460.length - 8);
+                expect(hashHeightPart).to.equal(blockHeight460);
+            });
+
             it('should get information of hashForMergedMining key CPV is correctly calculated if armadillo enabled', async () => {
                 let CPVcalculated = await utils.getCPV(context, rskBlockResponseHeight451By[byMethods[byMethod]].result.number);
                 let CPVfromResponse = rskBlockResponseHeight451By[byMethods[byMethod]].result.hashForMergedMining.substring(42, 56);
                 expect(CPVfromResponse).to.equal(CPVcalculated);
             });
 
-            it('should get information of hashForMergedMining key uncleCount byte is  correctly calculated if armadillo enabled', async () => {
+            it('should get information of hashForMergedMining key CPV is correctly calculated if armadillo enabled and papyrus activated', async () => {
+                let CPVcalculated = await utils.getCPV(context, rskBlockResponseHeight460By[byMethods[byMethod]].result.number);
+                let CPVfromResponse = rskBlockResponseHeight460By[byMethods[byMethod]].result.hashForMergedMining.substring(42, 56);
+                expect(CPVfromResponse).to.equal(CPVcalculated);
+            });
+
+            it('should get information of hashForMergedMining key uncleCount byte is correctly calculated if armadillo enabled', async () => {
                 const uncleCountCalculated = await utils.getUncleCount(context, amountOfBlocksToMine + 1, numberOfUncles);
                 let uncleCountFromResponse = parseInt(rskBlockResponseHeight451By[byMethods[byMethod]].result.hashForMergedMining.substring(56, 58), 16);
                 expect(uncleCountFromResponse).to.equal(uncleCountCalculated);
             });
 
+            it('should get information of hashForMergedMining key uncleCount byte is correctly calculated if armadillo enabled and papyrus activated', async () => {
+                const uncleCountCalculated = await utils.getUncleCount(context, amountOfBlocksToMine + extraBlocksToMineForPapyrus + 1, numberOfUncles);
+                let uncleCountFromResponse = parseInt(rskBlockResponseHeight460By[byMethods[byMethod]].result.hashForMergedMining.substring(56, 58), 16);
+                expect(uncleCountFromResponse).to.equal(uncleCountCalculated);
+            });
         });
     }
 });
