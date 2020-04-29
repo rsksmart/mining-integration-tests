@@ -12,8 +12,7 @@ const context = {
         "Content-Type: application/json",
         `Host: ${host}`,
         "Accept: */*"
-    ],
-    httpversion: "1.1"
+    ]
 };
 
 describe('Tests for mining block information', () => {
@@ -104,7 +103,7 @@ describe('Tests for cumulative difficulty', () => {
         this.timeout(120000);
         await utils.bitcoindPromiseRequest("generate", [], context);
         await utils.rskdPromiseRequest("evm_reset", [], context);
-        let responseBlockMined = await utils.mineBlockResponse(context,0);
+        let responseBlockMined = await utils.mineBlockResponse(context, 0);
     });
     for (let byMethod in byMethods) {
         describe(`Tests for block information by ${byMethod}`, () => {
