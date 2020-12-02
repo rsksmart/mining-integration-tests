@@ -29,9 +29,7 @@ jobs:
 
     steps:
       - checkout
-      - run:
-          name: Generate Bictoin blocks
-          command: ./btc-generate-blocks.sh
+
       - run:
           name: Clone RSKj
           command: |
@@ -72,6 +70,7 @@ jobs:
               echo "Waiting for RskJ..."
               sleep 1
             done
+            node generateBtcBlocks.js  
             npm test
             kill $rskpid
       - store_test_results:
