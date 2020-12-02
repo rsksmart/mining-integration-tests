@@ -12,8 +12,7 @@ jobs:
         command: [ "-printtoconsole", "-regtest", "-debug",
           "-server", "-listen", "-port=31591", "-connect=bitcoind02:31592",
           "-rpcbind=0.0.0.0:32591", "-rpcallowip=0.0.0.0/0",
-          "-rpcuser=admin", "-rpcpassword=admin",
-          "-deprecatedrpc=generate" ]
+          "-rpcuser=admin", "-rpcpassword=admin"]
 
       - image: kylemanna/bitcoind:latest
         name: bitcoind02
@@ -22,8 +21,7 @@ jobs:
         command: [ "-printtoconsole", "-regtest", "-debug",
           "-server", "-listen", "-port=31592", "-connect=bitcoind01:31591",
           "-rpcbind=0.0.0.0:32591", "-rpcallowip=0.0.0.0/0",
-          "-rpcuser=admin", "-rpcpassword=admin",
-          "-deprecatedrpc=generate" ]
+          "-rpcuser=admin", "-rpcpassword=admin" ]
 
     working_directory: ~/tmp
 
@@ -62,6 +60,7 @@ jobs:
           name: Start RskJ & Run Tests
           command: |
             npm install
+            node generateBtcBlocks.js  
             version=$(tr -d "'\"" <~/rsksmart/rskj/rskj-core/src/main/resources/version.properties \
               | cut -d = -f 2- | paste -sd - -)
             java -Drsk.conf.file=./rsk-integration-test.conf -cp ~/rsksmart/rskj/rskj-core/build/libs/rskj-core-"$version"-all.jar co.rsk.Start --regtest & rskpid=$!
@@ -70,7 +69,6 @@ jobs:
               echo "Waiting for RskJ..."
               sleep 1
             done
-            node generateBtcBlocks.js  
             npm test
             kill $rskpid
       - store_test_results:
