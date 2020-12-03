@@ -22,7 +22,6 @@ describe('Tests for mining block information', () => {
     let rskResponse;
     before(async function () {
         this.timeout(120000);
-        await utils.bitcoindPromiseRequest("generate", [], context);
         await utils.rskdPromiseRequest("evm_reset", [], context);
         let responseBlockMined = await utils.mineBlockResponse(context);
         rskBlockResponseHeight001By[byMethods.Number] = JSON.parse(await utils.getRskBlockByNumber(responseBlockMined.blockIncludedHeight, context));
