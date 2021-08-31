@@ -3,7 +3,7 @@ jobs:
   build:
     docker:
       # specify the version you desire here
-      - image: circleci/openjdk:8-jdk
+      - image: cimg/openjdk:8.0-node
 
       - image: kylemanna/bitcoind:latest
         name: bitcoind01
@@ -49,13 +49,7 @@ jobs:
             cd ~/rsksmart/rskj/
             ./configure.sh
             ./gradlew clean build -x test
-      - run:
-          name: Prepare npm
-          command: |
-            curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
-            sudo apt update
-            sudo apt-get install -y nodejs
-            sudo apt install build-essential
+
       - run:
           name: Start RskJ & Run Tests
           command: |
@@ -71,6 +65,7 @@ jobs:
             done
             npm test
             kill $rskpid
+            
       - store_test_results:
           path: ~/tmp/Results
       
