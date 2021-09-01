@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "RSK mining integration tests",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha --reporter mocha-junit-reporter --reporter-options mochaFile=./Results/mocha/Test-Results.xml"
   },
   "author": "RSK",
   "license": "MIT",
