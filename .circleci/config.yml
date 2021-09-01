@@ -71,3 +71,6 @@ jobs:
       
       - store_artifacts:
           path: ~/tmp/Results/mocha
+          
+      - store_artifacts:
+          path: ~/tmp/logs
