@@ -23,3 +23,4 @@ miner {
 6. Run `npm test`
 
 
+test
