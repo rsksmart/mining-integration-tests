@@ -11,7 +11,7 @@ for (const poolContext in poolContexts) {
         const block = await utils.buildAndMergeMineBlock(poolContexts[poolContext], true);
         const invalidParams = submitMethodCases[method].extractInvalidSubmitParameters(block);
         
-        const response = JSON.parse(await utils.rskJsonRpcRequestMiningModule(method, invalidParams, poolContexts[poolContext]))
+        const response = await utils.rskJsonRpcRequestMiningModule(method, invalidParams, poolContexts[poolContext]);
     
         utils.validateMergeMinedErrorResponse(response);
       })
@@ -20,7 +20,7 @@ for (const poolContext in poolContexts) {
         const block = await utils.buildAndMergeMineBlock(poolContexts[poolContext]);
         const params = submitMethodCases[method].extractSubmitParameters(block);
 
-        const response = JSON.parse(await utils.rskJsonRpcRequestMiningModule(method, params, poolContexts[poolContext]));
+        const response = (await utils.rskJsonRpcRequestMiningModule(method, params, poolContexts[poolContext]));
         utils.validateMergeMinedBlockResponse(response);
 
         expect(response.result.blockImportedResult).to.equal(utils.RSK_RESULT_CODES.IMPORTED_BEST);
@@ -39,18 +39,18 @@ for (const poolContext in poolContexts) {
         const blockB = await utils.buildAndMergeMineBlock(poolContexts[poolContext]);
         const paramsB = submitMethodCases[method].extractSubmitParameters(blockB);
 
-        const responseBlockA = JSON.parse(await utils.rskJsonRpcRequestMiningModule(method, paramsA, poolContexts[poolContext]));
+        const responseBlockA = await utils.rskJsonRpcRequestMiningModule(method, paramsA, poolContexts[poolContext]);
         utils.validateMergeMinedBlockResponse(responseBlockA);
         expect(responseBlockA.result.blockImportedResult).to.equal(utils.RSK_RESULT_CODES.IMPORTED_BEST);
 
         const blockC = await  utils.buildAndMergeMineBlock(poolContexts[poolContext], true);
         const paramsC = submitMethodCases[method].extractSubmitParameters(blockC);
 
-        const responseBlockC = JSON.parse(await utils.rskJsonRpcRequestMiningModule(method, paramsC, poolContexts[poolContext]));
+        const responseBlockC = await utils.rskJsonRpcRequestMiningModule(method, paramsC, poolContexts[poolContext]);
         utils.validateMergeMinedBlockResponse(responseBlockC);
         expect(responseBlockC.result.blockImportedResult).to.equal(utils.RSK_RESULT_CODES.IMPORTED_BEST);
 
-        const responseBlockB = JSON.parse(await utils.rskJsonRpcRequestMiningModule(method, paramsB, poolContexts[poolContext]));
+        const responseBlockB = await utils.rskJsonRpcRequestMiningModule(method, paramsB, poolContexts[poolContext]);
         utils.validateMergeMinedBlockResponse(responseBlockB);
         expect(responseBlockB.result.blockImportedResult).to.equal(utils.RSK_RESULT_CODES.IMPORTED_NOT_BEST);
       });
@@ -59,11 +59,11 @@ for (const poolContext in poolContexts) {
         const block = await  utils.buildAndMergeMineBlock(poolContexts[poolContext], true);
         const params = submitMethodCases[method].extractSubmitParameters(block);
 
-        const firstResponse = JSON.parse(await  utils.rskJsonRpcRequestMiningModule(method, params, poolContexts[poolContext]));
+        const firstResponse = await  utils.rskJsonRpcRequestMiningModule(method, params, poolContexts[poolContext]);
         utils.validateMergeMinedBlockResponse(firstResponse);
         expect(firstResponse.result.blockImportedResult).to.equal( utils.RSK_RESULT_CODES.IMPORTED_BEST);
         
-        const secondResponse = JSON.parse(await  utils.rskJsonRpcRequestMiningModule(method, params, poolContexts[poolContext]));
+        const secondResponse = await  utils.rskJsonRpcRequestMiningModule(method, params, poolContexts[poolContext]);
         utils.validateMergeMinedBlockResponse(secondResponse);
         expect(secondResponse.result.blockImportedResult).to.equal(utils.RSK_RESULT_CODES.EXIST);
       })

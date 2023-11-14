@@ -1,58 +1,67 @@
 const expect = require('chai').expect;
-const Curl = require( 'node-libcurl' ).Curl;
+const axios = require('axios');
+const http = require('http');
 const helper = require('../helper');
 const config = require('../config');
 
-describe('Testing getWork for eloipool', () => {
- 
-  const postBody = JSON.stringify({ jsonrpc: "2.0", method: "mnr_getWork", params: [], id:1 });
+describe.only('Testing getWork for eloipool', () => {
+  const postBody = {
+    jsonrpc: "2.0",
+    method: "mnr_getWork",
+    params: [],
+    id: 1
+  };
 
-  const curl = new Curl();
+  const headers = {
+    'Content-Type': 'application/json',
+    'Content-Length': JSON.stringify(postBody).length,
+    'Host': 'localhost:4444',
+    'Authorization': 'Basic Og==',
+    'Accept-Encoding': 'identity',
+    'User-Agent': 'AuthServiceProxy/0.1'
+  };
 
-  const headers = [
-    "Content-Type: application/json",
-    `Content-Length: ${postBody.length}`,
-    "Host: localhost:4444",
-    "Authorization: Basic Og==",
-    "Accept-Encoding: identity",
-    "User-Agent: AuthServiceProxy/0.1"
-  ];
+  const axiosOptions = {
+    method: 'POST',
+    url: config.rskd.url,
+    port: config.rskd.rpcport,
+    headers: headers,
+    data: postBody,
+    // auth: {
+    //   username: '',
+    //   password: ''
+    // },
+    // httpAgent: new http.Agent({ keepAlive: true }),
+  };
 
-  curl.setOpt(Curl.option.URL, config.rskd.url);
-  //  enabling this you can see more information about the headers used
-  //  curl.setOpt( Curl.option.VERBOSE, 1 ); 
-  curl.setOpt( Curl.option.PORT, config.rskd.rpcport ); 
-  curl.setOpt( Curl.option.POST, 1 );
-  curl.setOpt( Curl.option.POSTFIELDS, postBody );
-  curl.setOpt( Curl.option.HTTPHEADER, [headers.join('; ')]);
+  it('response looks ok', async function() {
+    try {
+      let n = 1;
+      console.log (n++);
+      console.log(axiosOptions)
+      const response = await axios(axiosOptions);
+      console.log (n++);
+      console.log (response)
+      const obj = response.data;
 
-  it('response looks ok', function(done) {
-    curl.on( 'end', function( statusCode, body, responseHeaders ) {
-        
-      const obj = JSON.parse(body);
-      expect(statusCode).to.be.equal(200);
-      expect(responseHeaders).to.have.lengthOf(1);
-      expect(responseHeaders[0]).to.not.be.null;
-      expect(responseHeaders[0].result).to.not.be.null;
-      expect(responseHeaders[0].result.version).to.equal('HTTP/1.1');
+      console.log (n++);
+      expect(response.status).to.equal(200);
+      expect(response.headers.version).to.equal('HTTP/1.1');
       expect(obj).to.have.property('result');
       expect(obj.result).to.have.property('blockHashForMergedMining');
-      expect(helper.isHex(obj.result.blockHashForMergedMining)).ok;
+      console.log (n++);
+      expect(helper.isHex(obj.result.blockHashForMergedMining)).to.be.true;
       expect(obj.result).to.have.property('target');
-      expect(helper.isHex(obj.result.target)).ok;
+      expect(helper.isHex(obj.result.target)).to.be.true;
       expect(obj.result).to.have.property('feesPaidToMiner');
+      console.log (n++);
       expect(obj.result).to.have.property('notify');
-      expect(typeof obj.result.notify).to.be.equal('boolean');
+      expect(typeof obj.result.notify).to.equal('boolean');
       expect(obj.result).to.have.property('parentBlockHash');
-      expect(helper.isHex(obj.result.parentBlockHash)).ok;
-
-      done();
-    });
-  
-    curl.on('error', function(e) { 
-      throw new Error(e); 
-    });
-
-    curl.perform();
+      console.log (n++);
+      expect(helper.isHex(obj.result.parentBlockHash)).to.be.true;
+    } catch (error) {
+      throw new Error(error);
+    }
   });
 });

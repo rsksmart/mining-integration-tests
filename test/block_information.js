@@ -22,22 +22,24 @@ describe('Tests for mining block information', () => {
     let rskResponse;
     before(async function () {
         this.timeout(120000);
+
+
         await utils.rskdPromiseRequest("evm_reset", [], context);
         let responseBlockMined = await utils.mineBlockResponse(context);
-        rskBlockResponseHeight001By[byMethods.Number] = JSON.parse(await utils.getRskBlockByNumber(responseBlockMined.blockIncludedHeight, context));
-        rskBlockResponseHeight001By[byMethods.Hash] = JSON.parse(await utils.getRskBlockByHash(responseBlockMined.blockHash, context));
+        rskBlockResponseHeight001By[byMethods.Number] = (await utils.getRskBlockByNumber(responseBlockMined.blockIncludedHeight, context));
+        rskBlockResponseHeight001By[byMethods.Hash] = (await utils.getRskBlockByHash(responseBlockMined.blockHash, context));
 
         for (let i = 0; i < amountOfBlocksToMine; i++) {
             responseBlockMined = await utils.mineBlockResponse(context);
         }
-        rskBlockResponseHeight451By[byMethods.Number] = JSON.parse(await utils.getRskBlockByNumber(responseBlockMined.blockIncludedHeight, context));
-        rskBlockResponseHeight451By[byMethods.Hash] = JSON.parse(await utils.getRskBlockByHash(responseBlockMined.blockHash, context));
+        rskBlockResponseHeight451By[byMethods.Number] = (await utils.getRskBlockByNumber(responseBlockMined.blockIncludedHeight, context));
+        rskBlockResponseHeight451By[byMethods.Hash] = (await utils.getRskBlockByHash(responseBlockMined.blockHash, context));
         for (let i = 0; i < extraBlocksToMineForPapyrus; i++) {
             responseBlockMined = await utils.mineBlockResponse(context);
         }
 
-        rskBlockResponseHeight460By[byMethods.Number] = JSON.parse(await utils.getRskBlockByNumber(responseBlockMined.blockIncludedHeight, context));
-        rskBlockResponseHeight460By[byMethods.Hash] = JSON.parse(await utils.getRskBlockByHash(responseBlockMined.blockHash, context));
+        rskBlockResponseHeight460By[byMethods.Number] = (await utils.getRskBlockByNumber(responseBlockMined.blockIncludedHeight, context));
+        rskBlockResponseHeight460By[byMethods.Hash] = (await utils.getRskBlockByHash(responseBlockMined.blockHash, context));
     });
     for (let byMethod in byMethods) {
         describe(`Tests for block information by ${byMethod}`, () => {
