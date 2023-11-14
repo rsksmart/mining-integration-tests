@@ -4,7 +4,7 @@ const http = require('http');
 const helper = require('../helper');
 const config = require('../config');
 
-describe.only('Testing getWork for eloipool', () => {
+describe('Testing getWork for eloipool', () => {
   const postBody = {
     jsonrpc: "2.0",
     method: "mnr_getWork",
